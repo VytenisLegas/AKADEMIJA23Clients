@@ -41,6 +41,10 @@ page 50110 "Client Contract List"
                 {
                     ToolTip = 'Contract End Date';
                 }
+                field("Contract Status"; Rec."Contract Status")
+                {
+                    ToolTip = 'Contract Status';
+                }
             }
         }
     }
@@ -49,6 +53,29 @@ page 50110 "Client Contract List"
     {
         area(Processing)
         {
+            action(ReleaseContract)
+            {
+                Caption = 'Release';
+                ToolTip = 'Release';
+
+                trigger OnAction()
+                begin
+                    Codeunit.Run(Codeunit::"Client Contract - Release", Rec);
+                end;
+            }
+
+            action(OpenContract)
+            {
+                Caption = 'Open';
+                ToolTip = 'Open';
+
+                trigger OnAction()
+                var
+                    ClientContractRelease: Codeunit "Client Contract - Release";
+                begin
+                    ClientContractRelease.OpenContract(Rec);
+                end;
+            }
             action(ActionName)
             {
                 Caption = 'Mano bandymas 1';
@@ -170,5 +197,19 @@ page 50110 "Client Contract List"
         // ClientContract.Get(Rec."Contract No.");
         // ClientContract."Contract Amount" := 0;
         // ClientContract.Modify();
+    end;
+
+    local procedure Bandymas6()
+    var
+        ClientContract: Record "Client Contract";
+        TotalAmount: Decimal;
+    begin
+        ClientContract.Reset();
+        //ClientContract.SetRange("Contract Start Date", DMY2Date(1, 1, 2023), DMY2Date(31, 1, 2023));
+        ClientContract.SetFilter("Contract Start Date", '%1..', DMY2Date(1, 2, 2023));
+        ClientContract.CalcSums("Contract Amount");
+        TotalAmount := ClientContract."Contract Amount";
+
+        Message('TotalAmount %1', TotalAmount);
     end;
 }

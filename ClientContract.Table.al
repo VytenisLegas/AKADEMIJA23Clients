@@ -2,6 +2,7 @@ table 50110 "Client Contract"
 {
     Caption = 'Client Contract';
     DataClassification = CustomerContent;
+    DrillDownPageId = "Client Contract List";
 
     fields
     {
@@ -16,15 +17,34 @@ table 50110 "Client Contract"
                 if ("Client Type" = const(Customer)) Customer
             else
             if ("Client Type" = const(Vendor)) Vendor;
+
+            trigger OnValidate()
+            begin
+                CheckStatusReleased();
+
+                CheckClient();
+            end;
         }
         field(11; "Client Type"; Enum "Client Contract Type")
         {
-
+            trigger OnValidate()
+            begin
+                CheckStatusReleased();
+            end;
+        }
+        field(12; "Contract Status"; Enum "Client Contract Status")
+        {
+            Editable = false;
         }
 
         field(20; "Contract Amount"; Decimal)
         {
             Caption = 'Contract Amount';
+
+            trigger OnValidate()
+            begin
+                CheckStatusReleased();
+            end;
         }
         field(21; "Contract Start Date"; Date)
         {
@@ -34,6 +54,8 @@ table 50110 "Client Contract"
             var
                 BadDateErr: Label 'Prad=ios data negali b9ti v4lesn4 nei pabaigos data';
             begin
+                CheckStatusReleased();
+
                 if ("Contract End Date" <> 0D) and ("Contract Start Date" > "Contract End Date") then
                     Error(BadDateErr);
             end;
@@ -46,6 +68,8 @@ table 50110 "Client Contract"
             var
                 BadDateErr: Label 'Prad=ios data negali b9ti v4lesn4 nei pabaigos data';
             begin
+                CheckStatusReleased();
+
                 if ("Contract End Date" <> 0D) and ("Contract Start Date" > "Contract End Date") then
                     Error(BadDateErr);
             end;
@@ -71,6 +95,37 @@ table 50110 "Client Contract"
             ClientContractSetup.Get();
             ClientContractSetup.TestField("Contract Nos");
             "Contract No." := NoSeriesManagement.GetNextNo(ClientContractSetup."Contract Nos", WorkDate(), true);
+        end;
+    end;
+
+    trigger OnModify()
+    begin
+        CheckStatusReleased();
+    end;
+
+    trigger OnRename()
+    begin
+        Error('Rename not allowed');
+    end;
+
+    local procedure CheckStatusReleased()
+    begin
+        if Rec."Contract Status" = Rec."Contract Status"::Released then
+            Error('Contract Released');
+    end;
+
+    local procedure CheckClient()
+    var
+        Customer: Record Customer;
+        Vendor: Record Vendor;
+    begin
+        case Rec."Client Type" of
+            Rec."Client Type"::Customer:
+                if Customer.Get(Rec."Client No.") then
+                    Customer.TestField(Blocked, Customer.Blocked::" ");
+            Rec."Client Type"::Vendor:
+                if Vendor.Get(Rec."Client No.") then
+                    Vendor.TestField(Blocked, Vendor.Blocked::" ");
         end;
     end;
 }
