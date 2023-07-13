@@ -48,6 +48,10 @@ page 50111 "Client Contract Card"
                     ToolTip = 'Contract Status';
                 }
             }
+            part(Lines; "Client Contract SubPage")
+            {
+                SubPageLink = "Contract No." = field("Contract No.");
+            }
         }
     }
 

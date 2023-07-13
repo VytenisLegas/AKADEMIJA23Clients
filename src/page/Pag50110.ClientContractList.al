@@ -76,6 +76,34 @@ page 50110 "Client Contract List"
                     ClientContractRelease.OpenContract(Rec);
                 end;
             }
+            action(PrintReportAll)
+            {
+                Caption = 'Print All';
+                ToolTip = 'Print All';
+
+                // RunObject = report "Client Contract";
+
+                trigger OnAction()
+                begin
+                    Report.RunModal(Report::"Client Contract", true, false, Rec);
+                end;
+            }
+            action(PrintReport)
+            {
+                Caption = 'Print';
+                ToolTip = 'Print';
+
+                // RunObject = report "Client Contract";
+
+                trigger OnAction()
+                var
+                    ClientContract: Record "Client Contract";
+                begin
+                    ClientContract := Rec;
+                    ClientContract.SetRecFilter();
+                    Report.RunModal(Report::"Client Contract", true, false, ClientContract);
+                end;
+            }
             action(ActionName)
             {
                 Caption = 'Mano bandymas 1';
